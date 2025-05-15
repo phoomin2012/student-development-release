@@ -1,0 +1,157 @@
+version: '3.8'
+
+services:
+  proxy:
+    image: traefik:latest
+    pull_policy: always
+    restart: always
+    logging:
+      options:
+        max-size: "100m"
+    command:
+      - '--providers.docker'
+      - '--providers.docker.watch=true'
+      # - '--providers.docker.swarmMode=true'
+      - '--providers.docker.exposedByDefault=true'
+      - '--accessLog.bufferingSize=0'
+      - '--api=true'
+      - '--api.insecure=true'
+      - '--ping.entryPoint=web'
+      - '--entryPoints.web.address=:80'
+      - '--entryPoints.websecure.address=:443'
+      - '--entryPoints.metrics.address=:8082'
+      - --metrics.prometheus.addrouterslabels=true
+      - --metrics.prometheus.entryPoint=metrics
+      - --certificatesresolvers.let.acme.email=stac@pcccr.ac.th
+      - --certificatesResolvers.let.acme.tlsChallenge=true
+      - --certificatesresolvers.let.acme.storage=/acme/acme.json
+      - --experimental.plugins.cloudflarewarp.modulename=github.com/BetterCorp/cloudflarewarp
+      - --experimental.plugins.cloudflarewarp.version=v1.3.1
+    ports:
+      # The HTTP port
+      - 80:80
+      - 443:443
+      # The Web UI (enabled by --api.insecure=true)
+      - 9081:8080
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${STORAGE_PATH}/traefik/acme:/acme
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.traefik-dashboard.loadbalancer.server.port=8080
+      - traefik.http.routers.traefik-dashboard.service=traefik-dashboard
+
+  database:
+    image: mysql:8.2
+    restart: always
+    logging:
+      options:
+        max-size: "100m"
+    environment:
+      - MYSQL_ROOT_PASSWORD=pcccrpcccr
+      - MYSQL_DATABASE=student-development
+    volumes:
+      - ${STORAGE_PATH}/database:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    restart: always
+    logging:
+      options:
+        max-size: "100m"
+    ports:
+      - 9090:80
+    environment:
+      - PMA_HOST=database
+      - UPLOAD_LIMIT=1G
+    links:
+      - 'database'
+    depends_on:
+      - 'database'
+
+  prometheus:
+    build: ./zconfig/prometheus
+    image: student-development-prometheus
+    pull_policy: build
+    restart: always
+    logging:
+      options:
+        max-size: "100m"
+    # ports:
+    #   - 9091:9090
+    volumes:
+      - ${STORAGE_PATH}/prometheus:/prometheus
+    links:
+      - 'server'
+      - 'proxy'
+      - 'database'
+      # - 'mysql-exporter'
+
+  grafana:
+    image: grafana/grafana
+    restart: always
+    logging:
+      options:
+        max-size: "100m"
+    ports:
+      - 9092:3000
+    volumes:
+      - ${STORAGE_PATH}/grafana:/var/lib/grafana
+    links:
+      - 'prometheus'
+
+  # mysql-exporter:
+  #   build: ./zconfig/mysql-exporter
+  #   image: student-development-mysqld-exporter
+  #   pull_policy: build
+  #   links:
+  #     - 'database'
+  #   depends_on:
+  #     - 'database'
+
+  server:
+    build:
+      tags:
+        - phuminstd-student-development:latest
+      context: .
+    image: student-development
+    pull_policy: build
+    # healthcheck:
+    #   test: 'curl -f http://localhost:3000/health || exit 1'
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
+    #   start_period: 10s
+    restart: always
+    logging:
+      options:
+        max-size: "100m"
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.server.loadbalancer.server.port=3000
+      - 'traefik.http.routers.server.rule=${WEB_ENTRY}'
+      - traefik.http.routers.server.priority=1000
+      - traefik.http.routers.server.entrypoints=web
+      - 'traefik.http.routers.server-secure.rule=${WEB_ENTRY}'
+      - traefik.http.routers.server-secure.priority=1000
+      - traefik.http.routers.server-secure.entrypoints=websecure
+      - traefik.http.routers.server-secure.tls=true
+      - traefik.http.routers.server-secure.tls.certresolver=let
+    environment:
+      - MYSQL_HOST=database
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=pcccrpcccr
+      - MYSQL_DATABASE=student-development
+      - NUXT_GOOGLE_CLIENT_ID=${NUXT_GOOGLE_CLIENT_ID}
+      - NUXT_GOOGLE_CLIENT_SECRET=${NUXT_GOOGLE_CLIENT_SECRET}
+      - NUXT_GOOGLE_OAUTH_REDIRECT=${NUXT_GOOGLE_OAUTH_REDIRECT}
+      - NUXT_PUBLIC_GOOGLE_CLIENT_ID=${NUXT_GOOGLE_CLIENT_ID}
+      - NUXT_PUBLIC_GOOGLE_OAUTH_REDIRECT=${NUXT_GOOGLE_OAUTH_REDIRECT}
+    ports:
+      - 9030:3000
+    links:
+      - 'database'
+      - 'proxy'
+    depends_on:
+      - 'database'
+      - 'proxy'
