@@ -70,9 +70,8 @@ services:
       - 'database'
 
   prometheus:
-    build: ./zconfig/prometheus
-    image: student-development-prometheus
-    pull_policy: build
+    image: ghcr.io/phoomin2012/student-development/prometheus:latest
+    pull_policy: always
     restart: always
     logging:
       options:
@@ -88,7 +87,7 @@ services:
       # - 'mysql-exporter'
 
   grafana:
-    image: grafana/grafana
+    image: grafana/grafana:latest
     restart: always
     logging:
       options:
@@ -110,12 +109,12 @@ services:
   #     - 'database'
 
   server:
-    build:
-      tags:
-        - phuminstd-student-development:latest
-      context: .
-    image: student-development
-    pull_policy: build
+    # build:
+    #   tags:
+    #     - phuminstd-student-development:latest
+    #   context: .
+    image: ghcr.io/phoomin2012/student-development/main:latest
+    pull_policy: always
     # healthcheck:
     #   test: 'curl -f http://localhost:3000/health || exit 1'
     #   interval: 30s
