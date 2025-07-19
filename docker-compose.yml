@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   proxy:
     image: traefik:latest
@@ -99,6 +97,19 @@ services:
     links:
       - 'prometheus'
 
+  garagehq:
+    image: dxflrs/garage:v2.0.0
+    restart: always
+    logging:
+      options:
+        max-size: "100m"
+    ports:
+      - 9093:9093
+    volumes:
+      - ./zconfig/garage/garage.toml:/etc/garage.toml
+      - ${STORAGE_PATH}/garage/meta:/var/lib/garage/meta
+      - ${STORAGE_PATH}/garage/data:/var/lib/garage/data
+
   # mysql-exporter:
   #   build: ./zconfig/mysql-exporter
   #   image: student-development-mysqld-exporter
@@ -109,11 +120,11 @@ services:
   #     - 'database'
 
   server:
-    # build:
-    #   tags:
-    #     - phuminstd-student-development:latest
-    #   context: .
-    image: ghcr.io/phoomin2012/student-development/main:latest
+    build:
+      tags:
+        - phuminstd-student-development:latest
+      context: .
+    # image: ghcr.io/phoomin2012/student-development/main:latest
     pull_policy: always
     # healthcheck:
     #   test: 'curl -f http://localhost:3000/health || exit 1'
