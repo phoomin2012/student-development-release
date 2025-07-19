@@ -53,6 +53,7 @@ services:
 
   phpmyadmin:
     image: phpmyadmin:latest
+    pull_policy: always
     restart: always
     logging:
       options:
@@ -86,6 +87,7 @@ services:
 
   grafana:
     image: grafana/grafana:latest
+    pull_policy: always
     restart: always
     logging:
       options:
@@ -106,7 +108,10 @@ services:
     ports:
       - 9093:9093
     volumes:
-      - ./zconfig/garage/garage.toml:/etc/garage.toml
+      - type: bind
+        source: ./zconfig/garage/garage.toml
+        target: /etc/garage.toml
+        read_only: true
       - ${STORAGE_PATH}/garage/meta:/var/lib/garage/meta
       - ${STORAGE_PATH}/garage/data:/var/lib/garage/data
 
