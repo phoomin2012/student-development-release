@@ -7,17 +7,17 @@ services:
       options:
         max-size: "100m"
     command:
-      - '--providers.docker'
-      - '--providers.docker.watch=true'
+      - "--providers.docker"
+      - "--providers.docker.watch=true"
       # - '--providers.docker.swarmMode=true'
-      - '--providers.docker.exposedByDefault=true'
-      - '--accessLog.bufferingSize=0'
-      - '--api=true'
-      - '--api.insecure=true'
-      - '--ping.entryPoint=web'
-      - '--entryPoints.web.address=:80'
-      - '--entryPoints.websecure.address=:443'
-      - '--entryPoints.metrics.address=:8082'
+      - "--providers.docker.exposedByDefault=true"
+      - "--accessLog.bufferingSize=0"
+      - "--api=true"
+      - "--api.insecure=true"
+      - "--ping.entryPoint=web"
+      - "--entryPoints.web.address=:80"
+      - "--entryPoints.websecure.address=:443"
+      - "--entryPoints.metrics.address=:8082"
       - --metrics.prometheus.addrouterslabels=true
       - --metrics.prometheus.entryPoint=metrics
       - --certificatesresolvers.let.acme.email=stac@pcccr.ac.th
@@ -64,9 +64,9 @@ services:
       - PMA_HOST=database
       - UPLOAD_LIMIT=1G
     links:
-      - 'database'
+      - "database"
     depends_on:
-      - 'database'
+      - "database"
 
   prometheus:
     image: ghcr.io/phoomin2012/student-development/prometheus:latest
@@ -80,9 +80,9 @@ services:
     volumes:
       - ${STORAGE_PATH}/prometheus:/prometheus
     links:
-      - 'server'
-      - 'proxy'
-      - 'database'
+      - "server"
+      - "proxy"
+      - "database"
       # - 'mysql-exporter'
 
   grafana:
@@ -97,10 +97,11 @@ services:
     volumes:
       - ${STORAGE_PATH}/grafana:/var/lib/grafana
     links:
-      - 'prometheus'
+      - "prometheus"
 
   garagehq:
-    image: dxflrs/garage:v2.0.0
+    image: ghcr.io/phoomin2012/student-development/garage:latest
+    pull_policy: always
     restart: always
     logging:
       options:
@@ -108,10 +109,6 @@ services:
     ports:
       - 9093:9093
     volumes:
-      - type: bind
-        source: ./zconfig/garage/garage.toml
-        target: /etc/garage.toml
-        read_only: true
       - ${STORAGE_PATH}/garage/meta:/var/lib/garage/meta
       - ${STORAGE_PATH}/garage/data:/var/lib/garage/data
 
@@ -144,10 +141,10 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.services.server.loadbalancer.server.port=3000
-      - 'traefik.http.routers.server.rule=${WEB_ENTRY}'
+      - "traefik.http.routers.server.rule=${WEB_ENTRY}"
       - traefik.http.routers.server.priority=1000
       - traefik.http.routers.server.entrypoints=web
-      - 'traefik.http.routers.server-secure.rule=${WEB_ENTRY}'
+      - "traefik.http.routers.server-secure.rule=${WEB_ENTRY}"
       - traefik.http.routers.server-secure.priority=1000
       - traefik.http.routers.server-secure.entrypoints=websecure
       - traefik.http.routers.server-secure.tls=true
@@ -165,8 +162,8 @@ services:
     ports:
       - 9030:3000
     links:
-      - 'database'
-      - 'proxy'
+      - "database"
+      - "proxy"
     depends_on:
-      - 'database'
-      - 'proxy'
+      - "database"
+      - "proxy"
