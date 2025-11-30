@@ -101,6 +101,11 @@ services:
 
   garagehq:
     image: ghcr.io/phoomin2012/student-development/garage:latest
+    # build:
+    #   context: ./zconfig/garage
+    #   dockerfile: Dockerfile
+    #   tags:
+    #     - ghcr.io/phoomin2012/student-development/garage:latest
     pull_policy: always
     restart: always
     logging:
