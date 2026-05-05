@@ -197,6 +197,7 @@ services:
     links:
       - "database"
       - "proxy"
+      - "garagehq"
     depends_on:
       database:
         condition: service_healthy
