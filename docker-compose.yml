@@ -137,6 +137,8 @@ services:
     logging:
       options:
         max-size: "100m"
+    labels:
+      - traefik.enable=false
     ports:
       - 9093:9093
     volumes:
@@ -186,7 +188,7 @@ services:
       - NUXT_GOOGLE_OAUTH_REDIRECT=${NUXT_GOOGLE_OAUTH_REDIRECT}
       - NUXT_PUBLIC_GOOGLE_CLIENT_ID=${NUXT_GOOGLE_CLIENT_ID}
       - NUXT_PUBLIC_GOOGLE_OAUTH_REDIRECT=${NUXT_GOOGLE_OAUTH_REDIRECT}
-      - S3_ENDPOINT=${S3_ENDPOINT}
+      - S3_ENDPOINT=http://garagehq:9093
       - S3_BUCKET=${S3_BUCKET}
       - S3_PUBLIC_BUCKET=${S3_PUBLIC_BUCKET}
       - S3_REGION=${S3_REGION}
