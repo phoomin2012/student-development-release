@@ -58,11 +58,7 @@ services:
       start_period: 40s
 
   database-migrate:
-    build:
-      context: .
-      dockerfile: Dockerfile.migrator
-      tags:
-        - ghcr.io/phoomin2012/student-development/migrator:latest
+    image: ghcr.io/phoomin2012/student-development/migrator:latest
     pull_policy: build
     restart: "no"
     logging:
