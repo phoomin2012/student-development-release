@@ -59,7 +59,7 @@ services:
 
   database-migrate:
     image: ghcr.io/phoomin2012/student-development/migrator:latest
-    pull_policy: build
+    pull_policy: always
     restart: "no"
     logging:
       options:
