@@ -132,11 +132,6 @@ services:
 
   garagehq:
     image: ghcr.io/phoomin2012/student-development/garage:latest
-    # build:
-    #   context: ./zconfig/garage
-    #   dockerfile: Dockerfile
-    #   tags:
-    #     - ghcr.io/phoomin2012/student-development/garage:latest
     pull_policy: always
     restart: always
     logging:
@@ -158,10 +153,6 @@ services:
   #     - 'database'
 
   server:
-    # build:
-    #   tags:
-    #     - phuminstd-student-development:latest
-    #   context: .
     image: ghcr.io/phoomin2012/student-development/main:latest
     pull_policy: always
     # healthcheck:
@@ -195,6 +186,12 @@ services:
       - NUXT_GOOGLE_OAUTH_REDIRECT=${NUXT_GOOGLE_OAUTH_REDIRECT}
       - NUXT_PUBLIC_GOOGLE_CLIENT_ID=${NUXT_GOOGLE_CLIENT_ID}
       - NUXT_PUBLIC_GOOGLE_OAUTH_REDIRECT=${NUXT_GOOGLE_OAUTH_REDIRECT}
+      - S3_ENDPOINT=${S3_ENDPOINT}
+      - S3_BUCKET=${S3_BUCKET}
+      - S3_PUBLIC_BUCKET=${S3_PUBLIC_BUCKET}
+      - S3_REGION=${S3_REGION}
+      - S3_ACCESS_KEY=${S3_ACCESS_KEY}
+      - S3_SECRET_KEY=${S3_SECRET_KEY}
     ports:
       - 9030:3000
     links:
