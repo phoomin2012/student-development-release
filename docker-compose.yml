@@ -50,6 +50,41 @@ services:
       - MYSQL_DATABASE=student-development
     volumes:
       - ${STORAGE_PATH}/database:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  database-migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile.migrator
+      tags:
+        - ghcr.io/phoomin2012/student-development/migrator:latest
+    pull_policy: build
+    restart: "no"
+    logging:
+      options:
+        max-size: "100m"
+    environment:
+      - MYSQL_HOST=database
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=pcccrpcccr
+      - MYSQL_DATABASE=student-development
+      - NODE_ENV=production
+    depends_on:
+      database:
+        condition: service_healthy
+    command:
+      [
+        "sh",
+        "-c",
+        "/usr/bin/node ./node_modules/sequelize-cli/lib/sequelize db:migrate
+          && /usr/bin/node ./node_modules/sequelize-cli/lib/sequelize
+          db:seed:all",
+      ]
 
   phpmyadmin:
     image: phpmyadmin:latest
@@ -170,5 +205,9 @@ services:
       - "database"
       - "proxy"
     depends_on:
-      - "database"
-      - "proxy"
+      database:
+        condition: service_healthy
+      proxy:
+        condition: service_started
+      database-migrate:
+        condition: service_completed_successfully
