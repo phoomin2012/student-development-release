@@ -51,7 +51,7 @@ services:
     volumes:
       - ${STORAGE_PATH}/database:/var/lib/mysql
     healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -73,13 +73,12 @@ services:
     depends_on:
       database:
         condition: service_healthy
-    command:
-      [
+    command: [
         "sh",
         "-c",
         "/usr/bin/node ./node_modules/sequelize-cli/lib/sequelize db:migrate
-          && /usr/bin/node ./node_modules/sequelize-cli/lib/sequelize
-          db:seed:all",
+        && /usr/bin/node ./node_modules/sequelize-cli/lib/sequelize
+        db:seed:all",
       ]
 
   phpmyadmin:
@@ -99,36 +98,36 @@ services:
     depends_on:
       - "database"
 
-  prometheus:
-    image: ghcr.io/phoomin2012/student-development/prometheus:latest
-    pull_policy: always
-    restart: always
-    logging:
-      options:
-        max-size: "100m"
-    # ports:
-    #   - 9091:9090
-    volumes:
-      - ${STORAGE_PATH}/prometheus:/prometheus
-    links:
-      - "server"
-      - "proxy"
-      - "database"
-      # - 'mysql-exporter'
+  # prometheus:
+  #   image: ghcr.io/phoomin2012/student-development/prometheus:latest
+  #   pull_policy: always
+  #   restart: always
+  #   logging:
+  #     options:
+  #       max-size: "100m"
+  #   # ports:
+  #   #   - 9091:9090
+  #   volumes:
+  #     - ${STORAGE_PATH}/prometheus:/prometheus
+  #   links:
+  #     - "server"
+  #     - "proxy"
+  #     - "database"
+  #     # - 'mysql-exporter'
 
-  grafana:
-    image: grafana/grafana:latest
-    pull_policy: always
-    restart: always
-    logging:
-      options:
-        max-size: "100m"
-    ports:
-      - 9092:3000
-    volumes:
-      - ${STORAGE_PATH}/grafana:/var/lib/grafana
-    links:
-      - "prometheus"
+  # grafana:
+  #   image: grafana/grafana:latest
+  #   pull_policy: always
+  #   restart: always
+  #   logging:
+  #     options:
+  #       max-size: "100m"
+  #   ports:
+  #     - 9092:3000
+  #   volumes:
+  #     - ${STORAGE_PATH}/grafana:/var/lib/grafana
+  #   links:
+  #     - "prometheus"
 
   garagehq:
     image: ghcr.io/phoomin2012/student-development/garage:latest
