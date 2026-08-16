@@ -81,6 +81,30 @@ services:
         db:seed:all",
       ]
 
+  rabbitmq:
+    image: rabbitmq:4-management
+    pull_policy: always
+    restart: always
+    logging:
+      options:
+        max-size: "100m"
+    labels:
+      - traefik.enable=false
+    environment:
+      - RABBITMQ_DEFAULT_USER=app
+      - RABBITMQ_DEFAULT_PASS=pcccrpcccr
+    volumes:
+      - ${STORAGE_PATH}/rabbitmq:/var/lib/rabbitmq
+    ports:
+      # Management UI
+      - 9094:15672
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
   phpmyadmin:
     image: phpmyadmin:latest
     pull_policy: always
@@ -193,16 +217,46 @@ services:
       - S3_REGION=${S3_REGION}
       - S3_ACCESS_KEY=${S3_ACCESS_KEY}
       - S3_SECRET_KEY=${S3_SECRET_KEY}
-    ports:
-      - 9030:3000
+      - RABBITMQ_URL=amqp://app:pcccrpcccr@rabbitmq:5672
+    # ports:
+    #   - 9030:3000
     links:
       - "database"
       - "proxy"
       - "garagehq"
+      - "rabbitmq"
     depends_on:
       database:
         condition: service_healthy
       proxy:
         condition: service_started
+      rabbitmq:
+        condition: service_healthy
+      database-migrate:
+        condition: service_completed_successfully
+
+  worker:
+    image: ghcr.io/phoomin2012/student-development/worker:latest
+    pull_policy: always
+    restart: always
+    logging:
+      options:
+        max-size: "100m"
+    labels:
+      - traefik.enable=false
+    environment:
+      - MYSQL_HOST=database
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=pcccrpcccr
+      - MYSQL_DATABASE=student-development
+      - RABBITMQ_URL=amqp://app:pcccrpcccr@rabbitmq:5672
+    links:
+      - "database"
+      - "rabbitmq"
+    depends_on:
+      database:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
       database-migrate:
         condition: service_completed_successfully
