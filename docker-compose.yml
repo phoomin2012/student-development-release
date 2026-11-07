@@ -12,8 +12,6 @@ services:
       # - '--providers.docker.swarmMode=true'
       - "--providers.docker.exposedByDefault=true"
       - "--accessLog.bufferingSize=0"
-      - "--api=true"
-      - "--api.insecure=true"
       - "--ping.entryPoint=web"
       - "--entryPoints.web.address=:80"
       - "--entryPoints.websecure.address=:443"
@@ -29,15 +27,11 @@ services:
       # The HTTP port
       - 80:80
       - 443:443
-      # The Web UI (enabled by --api.insecure=true)
-      - 9081:8080
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ${STORAGE_PATH}/traefik/acme:/acme
     labels:
-      - traefik.enable=true
-      - traefik.http.services.traefik-dashboard.loadbalancer.server.port=8080
-      - traefik.http.routers.traefik-dashboard.service=traefik-dashboard
+      - traefik.enable=false
 
   database:
     image: mysql:8.2
@@ -82,7 +76,7 @@ services:
       ]
 
   rabbitmq:
-    image: rabbitmq:4-management
+    image: rabbitmq:4
     pull_policy: always
     restart: always
     logging:
@@ -95,9 +89,6 @@ services:
       - RABBITMQ_DEFAULT_PASS=pcccrpcccr
     volumes:
       - ${STORAGE_PATH}/rabbitmq:/var/lib/rabbitmq
-    ports:
-      # Management UI
-      - 9094:15672
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 10s
@@ -109,11 +100,14 @@ services:
     image: phpmyadmin:latest
     pull_policy: always
     restart: always
+    # Kept defined but not running, so the stack update stops the old
+    # container instead of leaving it behind as an orphan.
+    scale: 0
+    labels:
+      - traefik.enable=false
     logging:
       options:
         max-size: "100m"
-    ports:
-      - 9090:80
     environment:
       - PMA_HOST=database
       - UPLOAD_LIMIT=1G
